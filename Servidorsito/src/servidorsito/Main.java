@@ -16,7 +16,6 @@ public class Main {
             System.out.println("Hubro problema en la conexion de red");
             System.exit(1);
         }
- 
         Socket cliente = null;
         try {
             cliente = socketEspecialito.accept();
@@ -24,44 +23,43 @@ public class Main {
             System.out.println("Hubro problemas con el cliente");
             System.exit(1);
         }
- 
         PrintWriter escritor = null;
- 
         try {
             escritor = new PrintWriter(cliente.getOutputStream(),true);
             BufferedReader lectorSocket = new BufferedReader(new InputStreamReader(cliente.getInputStream()));
- 
             //BufferedReader teclado = new BufferedReader(new InputStreamReader(System.in));
- 
+            escritor.println("¿Tienes una sesion? (si/no)");
             String entrada;
-            String mensajito = "";
-            int numerito = (int)(10*(Math.random()));
-            System.out.println(numerito);
+            int numerito = (int) (Math.random() * 10);
+            System.out.println("Numero secreto: " + numerito); 
             int intentos = 0;
             boolean adivino = false;
- 
-            while ((entrada= lectorSocket.readLine()) != null && intentos < 3) {
-                //System.out.println(entrada.toUpperCase());
-                //mensajito= teclado.readLine();
- 
-                if(Integer.valueOf(entrada) > numerito){
-                    escritor.println("te pasaste");
-                    intentos++;
+
+            while ((entrada = lectorSocket.readLine()) != null && intentos < 3) {
+                int numero;
+                try {
+                    numero = Integer.parseInt(entrada);
+                } catch (NumberFormatException e) {
+                    escritor.println("Eso no es un número válido.");
+                    continue;
                 }
-                if (Integer.valueOf(entrada) < numerito) {
-                    escritor.println("te falto");
+
+                if (numero > numerito) {
+                    escritor.println("Te pasaste");
                     intentos++;
-                }
-                if (Integer.valueOf(entrada) == numerito) {
-                    escritor.println("Acertaste pa"+"\nQuieres jugar de nuevo?");
+                } else if (numero < numerito) {
+                    escritor.println("Te faltó");
+                    intentos++;
+                } else {
+                    escritor.println("¡Acertaste pa! ¿Quieres jugar de nuevo?");
                     adivino = true;
+                    break;
                 }
- 
             }
-            if (adivino = false) {
-                escritor.println("El numero era: " + numerito);
+
+            if (!adivino) {
+                escritor.println("El número era: " + numerito);
             }
- 
         } catch (Exception e) {
             System.out.println("Hubo un problema con el lector");
             System.exit(1);
