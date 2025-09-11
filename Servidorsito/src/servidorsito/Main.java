@@ -1,4 +1,3 @@
-
 package servidorsito;
 
 import java.io.BufferedReader;
@@ -12,13 +11,12 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-
 public class Main {
-    
+
     public static void main(String[] args) {
-        
+
         ServerSocket socketEspecialito = null;
-        
+
         try {
             socketEspecialito = new ServerSocket(8080);
         } catch (Exception e) {
@@ -32,12 +30,12 @@ public class Main {
             System.out.println("Hubro problemas con el cliente");
             System.exit(1);
         }
-        
+
         PrintWriter escritor = null;
         try {
-            escritor = new PrintWriter(cliente.getOutputStream(),true);
+            escritor = new PrintWriter(cliente.getOutputStream(), true);
             BufferedReader lectorSocket = new BufferedReader(new InputStreamReader(cliente.getInputStream()));
-            
+
             File archivo = null;
             try {
                 archivo = new File("C:\\Users\\mango\\Documents\\Servidorsito\\Servidorsito\\src\\servidorsito\\Registros.txt");
@@ -47,18 +45,22 @@ public class Main {
                 System.out.println("Hubo un problema con los registros.");
                 e.printStackTrace();
             }
-            
+
             String nombre;
             String contraseña;
             escritor.println("Tienes una sesion? (si/no)");
             String entrada = lectorSocket.readLine();
+            boolean tieneSesion = false;
+            if (entrada.equalsIgnoreCase("si")) {
+                tieneSesion = true;
+            }
+            escritor.println("Dame tu nombre de usuario");
+            nombre = lectorSocket.readLine();
+            escritor.println("Dame la contraseña");
+            contraseña = lectorSocket.readLine();
             
-            if (entrada.equals("no") || (entrada.toUpperCase()).equals("NO")) {
-                escritor.println("Dame tu nombre de usuario");
-                nombre = lectorSocket.readLine();
-                escritor.println("Dame la contraseña");
-                contraseña = lectorSocket.readLine();
-                
+            if (!tieneSesion) {
+
                 boolean existe = false;
 
                 try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
@@ -77,7 +79,7 @@ public class Main {
 
                 if (existe) {
                     escritor.println("El nombre de usuario ya existe.");
-                    
+
                 } else {
                     try (FileWriter fescritor = new FileWriter(archivo, true)) {
                         fescritor.write(nombre + "_" + contraseña + "\n");
@@ -89,10 +91,10 @@ public class Main {
                     }
                 }
             }
-            
-            if (entrada.equals("si") || (entrada.toUpperCase()).equals("SI")) {                
+
+            if (tieneSesion) {
                 int numerito = (int) (Math.random() * 10);
-                System.out.println("Numero secreto: " + numerito); 
+                System.out.println("Numero secreto: " + numerito);
                 int intentos = 0;
                 boolean adivino = false;
 
