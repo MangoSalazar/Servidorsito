@@ -14,6 +14,7 @@ import java.net.Socket;
 
 
 public class Main {
+    
     public static void main(String[] args) {
         
         ServerSocket socketEspecialito = null;
@@ -49,7 +50,7 @@ public class Main {
             
             String nombre;
             String contraseña;
-            escritor.println("¿Tienes una sesion? (si/no)");
+            escritor.println("Tienes una sesion? (si/no)");
             String entrada = lectorSocket.readLine();
             
             if (entrada.equals("no") || (entrada.toUpperCase()).equals("NO")) {
@@ -58,12 +59,34 @@ public class Main {
                 escritor.println("Dame la contraseña");
                 contraseña = lectorSocket.readLine();
                 
-                try (FileWriter fescritor = new FileWriter(archivo)) {
-                    fescritor.write(nombre + "_" + contraseña + "\n");
-                    System.out.println("Usuario registrado correctamente.");
+                boolean existe = false;
+
+                try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
+                    String linea;
+                    while ((linea = br.readLine()) != null) {
+                        String[] partes = linea.split("_");
+                        if (partes.length > 0 && partes[0].equalsIgnoreCase(nombre)) {
+                            existe = true;
+                            break;
+                        }
+                    }
                 } catch (IOException e) {
-                    System.out.println("Error al guardar el usuario.");
+                    System.out.println("Error al leer los registros.");
                     e.printStackTrace();
+                }
+
+                if (existe) {
+                    escritor.println("El nombre de usuario ya existe.");
+                    
+                } else {
+                    try (FileWriter fescritor = new FileWriter(archivo, true)) {
+                        fescritor.write(nombre + "_" + contraseña + "\n");
+                        escritor.println("Usuario registrado");
+                        System.out.println("Usuario registrado: " + nombre);
+                    } catch (IOException e) {
+                        System.out.println("Error al guardar el usuario.");
+                        e.printStackTrace();
+                    }
                 }
             }
             
@@ -90,7 +113,7 @@ public class Main {
                         escritor.println("Te faltó");
                         intentos++;
                     } else {
-                        escritor.println("¡Acertaste pa! ¿Quieres jugar de nuevo?");
+                        escritor.println("Acertaste pa! ¿Quieres jugar de nuevo?");
                         adivino = true;
                         break;
                     }
