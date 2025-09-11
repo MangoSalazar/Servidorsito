@@ -2,14 +2,21 @@
 package servidorsito;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+
+
 public class Main {
     public static void main(String[] args) {
+        
         ServerSocket socketEspecialito = null;
+        
         try {
             socketEspecialito = new ServerSocket(8080);
         } catch (Exception e) {
@@ -23,11 +30,24 @@ public class Main {
             System.out.println("Hubro problemas con el cliente");
             System.exit(1);
         }
+        
         PrintWriter escritor = null;
         try {
             escritor = new PrintWriter(cliente.getOutputStream(),true);
             BufferedReader lectorSocket = new BufferedReader(new InputStreamReader(cliente.getInputStream()));
-            //BufferedReader teclado = new BufferedReader(new InputStreamReader(System.in));
+            
+            File archivo;
+            try {
+                archivo = new File("C:\\Users\\mango\\Documents\\Servidorsito\\Servidorsito\\src\\servidorsito\\Registros.txt");
+                FileReader lectorArchivo = new FileReader(archivo);
+                BufferedReader lectorMejorado = new BufferedReader(lectorArchivo);
+            
+            } catch (FileNotFoundException e) {
+                System.out.println("Hubo un problema con los registros.");
+                e.printStackTrace();
+            }
+
+        
             escritor.println("¿Tienes una sesion? (si/no)");
             String entrada;
             int numerito = (int) (Math.random() * 10);
@@ -36,6 +56,7 @@ public class Main {
             boolean adivino = false;
 
             while ((entrada = lectorSocket.readLine()) != null && intentos < 3) {
+                
                 int numero;
                 try {
                     numero = Integer.parseInt(entrada);
@@ -56,10 +77,10 @@ public class Main {
                     break;
                 }
             }
-
             if (!adivino) {
                 escritor.println("El número era: " + numerito);
             }
+            
         } catch (Exception e) {
             System.out.println("Hubo un problema con el lector");
             System.exit(1);
