@@ -1,6 +1,7 @@
 package servidorsito;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -58,10 +59,8 @@ public class Main {
             nombre = lectorSocket.readLine();
             escritor.println("Dame la contraseña");
             contraseña = lectorSocket.readLine();
-            
+            boolean existe = false;
             if (!tieneSesion) {
-
-                boolean existe = false;
 
                 try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
                     String linea;
@@ -93,36 +92,36 @@ public class Main {
             }
 
             if (tieneSesion) {
-                int numerito = (int) (Math.random() * 10);
-                System.out.println("Numero secreto: " + numerito);
-                int intentos = 0;
-                boolean adivino = false;
-
-                while ((entrada = lectorSocket.readLine()) != null && intentos < 3) {
-
-                    int numero;
-                    try {
-                        numero = Integer.parseInt(entrada);
-                    } catch (NumberFormatException e) {
-                        escritor.println("Eso no es un número válido.");
-                        continue;
+                
+                try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
+                    String linea;
+                    while ((linea = br.readLine()) != null) {
+                        String[] partes = linea.split("_");
+                        if (partes[1].equalsIgnoreCase(contraseña) && partes[0].equalsIgnoreCase(nombre)) {
+                            existe = true;
+                            break;
+                        }
                     }
-
-                    if (numero > numerito) {
-                        escritor.println("Te pasaste");
-                        intentos++;
-                    } else if (numero < numerito) {
-                        escritor.println("Te faltó");
-                        intentos++;
-                    } else {
-                        escritor.println("Acertaste pa! ¿Quieres jugar de nuevo?");
-                        adivino = true;
-                        break;
+                } catch (IOException e) {
+                    System.out.println("Error al leer los registros.");
+                    e.printStackTrace();
+                }
+                while (existe) {                    
+                    escritor.println("Que deseas hacer? (1 = leer mensajes, 2 = dejar mensajes) ");
+                    String opcion = lectorSocket.readLine();
+                    switch (opcion) {
+                        case "si","SI":
+                            
+                            break;
+                        case "no","NO":
+                            
+                            break;
+                        default:
+                            throw new AssertionError();
                     }
+                    
                 }
-                if (!adivino) {
-                    escritor.println("El número era: " + numerito);
-                }
+            
             }
 
         } catch (Exception e) {
@@ -136,4 +135,26 @@ public class Main {
             System.exit(1);
         }
     }
+    
+    private static void dejarMensaje(BufferedReader bufer,String nombre) throws IOException {
+        String nombresito = nombre;
+
+        if (true) {
+            System.out.println("❌ El usuario \"" + nombre + "\" no está registrado. No puedes dejar mensajes.");
+            return;
+        }
+
+        System.out.print("Escribe tu mensaje: ");
+        String mensaje = bufer.readLine();
+
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("C:\\Users\\mango\\Documents\\Servidorsito\\Servidorsito\\src\\servidorsito\\Mensajitos.txt", true))) {
+            bw.write(nombre + "_" + mensaje);
+            bw.newLine();
+            System.out.println("✅ Mensaje guardado con éxito.");
+        } catch (IOException e) {
+            System.out.println("❌ Error al guardar el mensaje: " + e.getMessage());
+        }
+    }
+    
+
 }
