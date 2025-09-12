@@ -65,7 +65,7 @@ public class Main {
                 try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
                     String linea;
                     while ((linea = br.readLine()) != null) {
-                        String[] partes = linea.split("_");
+                        String[] partes = linea.split(":");
                         if (partes.length > 0 && partes[0].equalsIgnoreCase(nombre)) {
                             existe = true;
                             break;
@@ -81,7 +81,7 @@ public class Main {
 
                 } else {
                     try (FileWriter fescritor = new FileWriter(archivo, true)) {
-                        fescritor.write(nombre + "_" + contraseña + "\n");
+                        fescritor.write(nombre + ":" + contraseña + "\n");
                         escritor.println("Usuario registrado");
                         System.out.println("Usuario registrado: " + nombre);
                     } catch (IOException e) {
@@ -92,11 +92,11 @@ public class Main {
             }
 
             if (tieneSesion) {
-                
+
                 try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
                     String linea;
                     while ((linea = br.readLine()) != null) {
-                        String[] partes = linea.split("_");
+                        String[] partes = linea.split(":");
                         if (partes[1].equalsIgnoreCase(contraseña) && partes[0].equalsIgnoreCase(nombre)) {
                             existe = true;
                             break;
@@ -106,22 +106,70 @@ public class Main {
                     System.out.println("Error al leer los registros.");
                     e.printStackTrace();
                 }
-                while (existe) {                    
+                while (existe) {
                     escritor.println("Que deseas hacer? (1 = leer mensajes, 2 = dejar mensajes) ");
                     String opcion = lectorSocket.readLine();
                     switch (opcion) {
-                        case "si","SI":
-                            
+                        case "1":
+
+                            try (BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\mango\\Documents\\Servidorsito\\Servidorsito\\src\\servidorsito\\Mensajitos.txt"))) {
+                                String linea;
+                                boolean hayMensajes = false;
+
+                                while ((linea = br.readLine()) != null) {
+                                    String[] partes = linea.split(":", 2);
+                                    if (partes.length == 2 && partes[0].equalsIgnoreCase(nombre)) {
+                                        hayMensajes = true;
+                                        escritor.println("📩 Mensaje: " + partes[1]);
+                                        escritor.println("Escribe '1' para ver el siguiente o cualquier otra cosa para salir.");
+                                        String respuesta = lectorSocket.readLine();
+                                        if (!"1".equalsIgnoreCase(respuesta)) {
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (!hayMensajes) {
+                                    escritor.println("No tienes mensajes nuevos.");
+                                }
+                            } catch (IOException e) {
+                                System.out.println("Error al leer los registros.");
+                                e.printStackTrace();
+                            }
+
                             break;
-                        case "no","NO":
-                            
+                        case "2":
+                            escritor.println("A quien va dirigido el mensaje?");
+                            String nombresito = lectorSocket.readLine();
+                            if (!usuarioExiste(nombresito)) {
+                                escritor.println(" El usuario \"" + nombresito + "\" no está registrado. No puedes dejar mensajes. (pulsa enter para continuar)");
+                                return;
+                            }
+
+                            escritor.println("Escribe tu mensaje: ");
+                            String mensaje = lectorSocket.readLine();
+
+                            try (BufferedWriter bw = new BufferedWriter(new FileWriter("C:\\Users\\mango\\Documents\\Servidorsito\\Servidorsito\\src\\servidorsito\\Mensajitos.txt", true))) {
+                                bw.write(nombresito + ":" + mensaje);
+                                bw.newLine();
+                                System.out.println("✅ Mensaje guardado con éxito.");
+                            } catch (IOException e) {
+                                System.out.println(" Error al guardar el mensaje: " + e.getMessage());
+                            }
+
                             break;
                         default:
+                            try {
+                                cliente.close();
+                            } catch (Exception e) {
+                                System.out.println("Hubo problemas en la conexion de red");
+                                System.exit(1);
+                            }
                             throw new AssertionError();
                     }
-                    
+
                 }
-            
+
             }
 
         } catch (Exception e) {
@@ -135,26 +183,24 @@ public class Main {
             System.exit(1);
         }
     }
-    
-    private static void dejarMensaje(BufferedReader bufer,String nombre) throws IOException {
-        String nombresito = nombre;
 
-        if (true) {
-            System.out.println("❌ El usuario \"" + nombre + "\" no está registrado. No puedes dejar mensajes.");
-            return;
+    private static boolean usuarioExiste(String nombre) {
+        File archivo = new File("C:\\Users\\mango\\Documents\\Servidorsito\\Servidorsito\\src\\servidorsito\\Registros.txt");
+        if (!archivo.exists()) {
+            return false;
         }
-
-        System.out.print("Escribe tu mensaje: ");
-        String mensaje = bufer.readLine();
-
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter("C:\\Users\\mango\\Documents\\Servidorsito\\Servidorsito\\src\\servidorsito\\Mensajitos.txt", true))) {
-            bw.write(nombre + "_" + mensaje);
-            bw.newLine();
-            System.out.println("✅ Mensaje guardado con éxito.");
+        try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
+            String linea;
+            while ((linea = br.readLine()) != null) {
+                String[] partes = linea.split(":", 2);
+                if (partes.length == 2 && partes[0].equalsIgnoreCase(nombre)) {
+                    return true;
+                }
+            }
         } catch (IOException e) {
-            System.out.println("❌ Error al guardar el mensaje: " + e.getMessage());
+            System.out.println(" Error al verificar usuario: " + e.getMessage());
         }
-    }
-    
 
+        return false;
+    }
 }

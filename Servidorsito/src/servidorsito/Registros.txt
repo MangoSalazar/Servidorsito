@@ -1,2 +1,1 @@
-mango_1234mango_1234
-miki_456
+mango:123
