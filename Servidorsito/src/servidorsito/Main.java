@@ -17,7 +17,8 @@ public class Main {
     public static void main(String[] args) {
 
         ServerSocket socketEspecialito = null;
-
+        String rutaRegistros = "C:\\Users\\M1-MQ1-D\\Documents\\NetBeansProjects\\Servidorsito\\Servidorsito\\src\\servidorsito\\Registros.txt";
+        String rutaMensajitos = "C:\\Users\\mango\\Documents\\Servidorsito\\Servidorsito\\src\\servidorsito\\Mensajitos.txt";
         try {
             socketEspecialito = new ServerSocket(8080);
         } catch (Exception e) {
@@ -39,7 +40,7 @@ public class Main {
 
             File archivo = null;
             try {
-                archivo = new File("C:\\Users\\mango\\Documents\\Servidorsito\\Servidorsito\\src\\servidorsito\\Registros.txt");
+                archivo = new File(rutaRegistros);
                 FileReader lRegistros = new FileReader(archivo);
                 BufferedReader lectorRegistros = new BufferedReader(lRegistros);
             } catch (FileNotFoundException e) {
@@ -107,12 +108,12 @@ public class Main {
                     e.printStackTrace();
                 }
                 while (existe) {
-                    escritor.println("Que deseas hacer? (1 = leer mensajes, 2 = dejar mensajes) ");
+                    escritor.println("Que deseas hacer? (1 = leer mensajes, 2 = dejar mensajes, 3 = borrar mensaje) ");
                     String opcion = lectorSocket.readLine();
                     switch (opcion) {
                         case "1":
 
-                            try (BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\mango\\Documents\\Servidorsito\\Servidorsito\\src\\servidorsito\\Mensajitos.txt"))) {
+                            try (BufferedReader br = new BufferedReader(new FileReader(rutaRegistros))) {
                                 String linea;
                                 boolean hayMensajes = false;
 
@@ -140,23 +141,27 @@ public class Main {
                             break;
                         case "2":
                             escritor.println("A quien va dirigido el mensaje?");
-                            String nombresito = lectorSocket.readLine();
-                            if (!usuarioExiste(nombresito)) {
-                                escritor.println(" El usuario \"" + nombresito + "\" no está registrado. No puedes dejar mensajes. (pulsa enter para continuar)");
+                            String nombreDestino = lectorSocket.readLine();
+                            if (!usuarioExiste(rutaRegistros, nombreDestino)) {
+                                escritor.println(" El usuario \"" + nombreDestino + "\" no está registrado. No puedes dejar mensajes. (pulsa enter para continuar)");
                                 return;
                             }
 
                             escritor.println("Escribe tu mensaje: ");
                             String mensaje = lectorSocket.readLine();
 
-                            try (BufferedWriter bw = new BufferedWriter(new FileWriter("C:\\Users\\mango\\Documents\\Servidorsito\\Servidorsito\\src\\servidorsito\\Mensajitos.txt", true))) {
-                                bw.write(nombresito + ":" + mensaje);
+                            try (BufferedWriter bw = new BufferedWriter(new FileWriter(rutaMensajitos, true))) {
+                                bw.write(nombreDestino + ":" + nombre +" => "+ mensaje);
                                 bw.newLine();
                                 System.out.println("✅ Mensaje guardado con éxito.");
                             } catch (IOException e) {
                                 System.out.println(" Error al guardar el mensaje: " + e.getMessage());
                             }
 
+                            break;
+                        case "3":
+                            
+                            
                             break;
                         default:
                             try {
@@ -184,8 +189,8 @@ public class Main {
         }
     }
 
-    private static boolean usuarioExiste(String nombre) {
-        File archivo = new File("C:\\Users\\mango\\Documents\\Servidorsito\\Servidorsito\\src\\servidorsito\\Registros.txt");
+    private static boolean usuarioExiste(String ruta, String nombre) {
+        File archivo = new File(ruta);
         if (!archivo.exists()) {
             return false;
         }
@@ -194,6 +199,25 @@ public class Main {
             while ((linea = br.readLine()) != null) {
                 String[] partes = linea.split(":", 2);
                 if (partes.length == 2 && partes[0].equalsIgnoreCase(nombre)) {
+                    return true;
+                }
+            }
+        } catch (IOException e) {
+            System.out.println(" Error al verificar usuario: " + e.getMessage());
+        }
+
+        return false;
+    }
+    private static boolean usuarioEncontrado(String nombre, String contraseña) {
+        File archivo = new File("C:\\Users\\M1-MQ1-D\\Documents\\NetBeansProjects\\Servidorsito\\Servidorsito\\src\\servidorsito\\Registros.txt");
+        if (!archivo.exists()) {
+            return false;
+        }
+        try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
+            String linea;
+            while ((linea = br.readLine()) != null) {
+                String[] partes = linea.split(":", 2);
+                if (partes.length == 2 && partes[0].equalsIgnoreCase(nombre) && partes[1].equalsIgnoreCase(contraseña)) {
                     return true;
                 }
             }
