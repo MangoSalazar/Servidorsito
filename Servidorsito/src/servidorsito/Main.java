@@ -17,8 +17,9 @@ public class Main {
     public static void main(String[] args) {
 
         ServerSocket socketEspecialito = null;
-        String rutaRegistros = "C:\\Users\\M1-MQ1-D\\Documents\\NetBeansProjects\\Servidorsito\\Servidorsito\\src\\servidorsito\\Registros.txt";
+        String rutaRegistros = "C:\\Users\\mango\\Documents\\Servidorsito\\Servidorsito\\src\\servidorsito\\Registros.txt";
         String rutaMensajitos = "C:\\Users\\mango\\Documents\\Servidorsito\\Servidorsito\\src\\servidorsito\\Mensajitos.txt";
+        String rutaTempRegistros = "C:\\Users\\mango\\Documents\\Servidorsito\\Servidorsito\\src\\servidorsito\\temp_registros.txt";
         try {
             socketEspecialito = new ServerSocket(8080);
         } catch (Exception e) {
@@ -113,7 +114,7 @@ public class Main {
                     switch (opcion) {
                         case "1":
 
-                            try (BufferedReader br = new BufferedReader(new FileReader(rutaRegistros))) {
+                            try (BufferedReader br = new BufferedReader(new FileReader(rutaMensajitos))) {
                                 String linea;
                                 boolean hayMensajes = false;
 
@@ -160,8 +161,42 @@ public class Main {
 
                             break;
                         case "3":
-                            
-                            
+                            escritor.println("Seguro que quieres borrar tu cuenta? (si/no)");
+                            String confirmacion = lectorSocket.readLine();
+
+                            if (confirmacion.equalsIgnoreCase("si")) {
+                                File archivoReg = new File(rutaRegistros);
+                                File tempFile = new File(rutaTempRegistros);
+
+                                try (BufferedReader br = new BufferedReader(new FileReader(archivoReg));
+                                     BufferedWriter bw = new BufferedWriter(new FileWriter(tempFile))) {
+
+                                    String linea;
+                                    while ((linea = br.readLine()) != null) {
+                                        // saltar la línea del usuario a borrar
+                                        String[] partes = linea.split(":", 2);
+                                        if (!(partes.length == 2 && partes[0].equalsIgnoreCase(nombre) && partes[1].equalsIgnoreCase(contraseña))) {
+                                            bw.write(linea);
+                                            bw.newLine();
+                                        }
+                                    }
+                                }
+
+                                // reemplazar el archivo original por el temporal
+                                if (archivoReg.delete() && tempFile.renameTo(archivoReg)) {
+                                    escritor.println("✅ Tu cuenta ha sido borrada con éxito.");
+                                    System.out.println("Cuenta eliminada: " + nombre);
+
+                                    // cerrar conexión con el cliente
+                                    cliente.close();
+                                    System.exit(0);
+                                } else {
+                                    escritor.println("❌ Hubo un error al borrar tu cuenta.");
+                                }
+
+                            } else {
+                                escritor.println("Operación cancelada. Tu cuenta sigue activa.");
+                            }
                             break;
                         default:
                             try {

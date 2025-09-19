@@ -1,2 +1,2 @@
-mango:123kike:qwe
+mango:123
 kike:qwe
