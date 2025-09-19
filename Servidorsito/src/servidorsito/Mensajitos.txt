@@ -1,2 +1,0 @@
-mango:hola mundo
-kike:adios mundo
