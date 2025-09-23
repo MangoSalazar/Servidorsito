@@ -6,37 +6,32 @@ import java.net.Socket;
 
 public class Main {
 
-    private static final String RUTA_BASE = "C:\\Users\\mango\\Documents\\Servidorsito\\Servidorsito\\src\\servidorsito\\";
+    private static final String RUTA_BASE = "C:\\Users\\M1-MQ1-D\\Documents\\NetBeansProjects\\Servidorsito\\Servidorsito\\src\\servidorsito\\";
     private static final String RUTA_REGISTROS = RUTA_BASE + "Registros.txt";
     private static final String RUTA_MENSAJES = RUTA_BASE + "Mensajitos.txt";
     private static final String RUTA_TEMP = RUTA_BASE + "temp_registros.txt";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         try (ServerSocket servidor = new ServerSocket(8080)) {
             System.out.println("Servidor esperando conexión...");
             Socket cliente = servidor.accept();
 
-            try (PrintWriter escritor = new PrintWriter(cliente.getOutputStream(), true);
-                 BufferedReader lectorSocket = new BufferedReader(new InputStreamReader(cliente.getInputStream()))) {
+            try (PrintWriter escritor = new PrintWriter(cliente.getOutputStream(), true); BufferedReader lectorSocket = new BufferedReader(new InputStreamReader(cliente.getInputStream()))) {
 
-                escritor.println("Tienes una sesión? (si/no)");
-                boolean tieneSesion = lectorSocket.readLine().equalsIgnoreCase("si");
-
-                escritor.println("Dame tu nombre de usuario:");
+                escritor.println("Bienvenido Dame tu nombre de usuario");
                 String nombre = lectorSocket.readLine();
                 escritor.println("Dame la contraseña:");
                 String contraseña = lectorSocket.readLine();
 
-                if (!tieneSesion) {
-                    if (usuarioExiste(nombre)) {
-                        escritor.println("⚠️ El nombre de usuario ya existe.");
-                    } else {
+                if (!usuarioExiste(nombre)) {
+                    escritor.println("el usuario no existe, Deseas registrartlo?");
+                    if ((lectorSocket.readLine()).equalsIgnoreCase("si")) {
                         registrarUsuario(nombre, contraseña);
                         escritor.println("✅ Usuario registrado con éxito.");
                     }
                 }
 
-                if (tieneSesion && validarUsuario(nombre, contraseña)) {
+                if (validarUsuario(nombre, contraseña)) {
                     boolean activo = true;
                     while (activo) {
                         escritor.println("¿Qué deseas hacer? (1 = leer mensajes, 2 = dejar mensajes, 3 = borrar cuenta, 4 = salir)");
@@ -77,16 +72,14 @@ public class Main {
                                 escritor.println(" Opción no válida.");
                         }
                     }
-                } else if (tieneSesion) {
-                    escritor.println(" Usuario o contraseña incorrectos.");
                 }
+            } catch (IOException e) {
+                System.out.println("Error en el servidor: " + e.getMessage());
             }
-        } catch (IOException e) {
-            System.out.println("Error en el servidor: " + e.getMessage());
         }
     }
+    
 
-    // 🔹 Verifica si existe un usuario
     private static boolean usuarioExiste(String nombre) {
         try (BufferedReader br = new BufferedReader(new FileReader(RUTA_REGISTROS))) {
             String linea;
@@ -96,7 +89,8 @@ public class Main {
                     return true;
                 }
             }
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
         return false;
     }
 
@@ -118,7 +112,8 @@ public class Main {
                     return true;
                 }
             }
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
         return false;
     }
 
@@ -127,8 +122,7 @@ public class Main {
         File temp = new File(RUTA_TEMP);
         boolean eliminado = false;
 
-        try (BufferedReader br = new BufferedReader(new FileReader(original));
-             BufferedWriter bw = new BufferedWriter(new FileWriter(temp))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(original)); BufferedWriter bw = new BufferedWriter(new FileWriter(temp))) {
 
             String linea;
             while ((linea = br.readLine()) != null) {
@@ -157,10 +151,14 @@ public class Main {
                     hayMensajes = true;
                     escritor.println(" Mensaje: " + partes[1]);
                     escritor.println("Escribe '1' para ver el siguiente o cualquier otra cosa para salir.");
-                    if (!"1".equalsIgnoreCase(lectorSocket.readLine())) break;
+                    if (!"1".equalsIgnoreCase(lectorSocket.readLine())) {
+                        break;
+                    }
+                }
+                if (!hayMensajes) {
+                    escritor.println("No tienes mensajes nuevos.");
                 }
             }
-            if (!hayMensajes) escritor.println("No tienes mensajes nuevos.");
         }
     }
 
