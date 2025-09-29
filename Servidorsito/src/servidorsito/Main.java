@@ -85,7 +85,7 @@ public class Main {
     }
     
     private static void bloquearUsuario(String nombre,String usuarioB) {
-        if (usuarioExiste(obtenerUsuario(usuarioB),RUTA_REGISTROS) && !estaBloqueado(usuarioB)) {
+        if (usuarioExiste(obtenerUsuario(usuarioB),RUTA_REGISTROS) && !estaBloqueado(obtenerUsuario(usuarioB))) {
             registrarUsuario(obtenerUsuario(usuarioB), nombre, RUTA_BLOQUEOS);
         }
     }
@@ -113,7 +113,7 @@ public class Main {
 
     private static void mandarMensaje(String mensaje, String origen) {
         String destino = obtenerUsuario(mensaje);
-        if (usuarioExiste(destino,RUTA_REGISTROS)) {
+        if (usuarioExiste(destino,RUTA_REGISTROS) && !estaBloqueado(destino)) {
             guardarMensaje(destino, origen, arreglarMensaje(mensaje),RUTA_MENSAJES);
             return;
         }

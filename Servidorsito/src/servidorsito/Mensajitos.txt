@@ -1,1 +1,2 @@
 kike:mango => hol
+kike:mango => pedorro
