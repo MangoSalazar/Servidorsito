@@ -10,6 +10,7 @@ public class Main {
     private static final String RUTA_REGISTROS = RUTA_BASE + "Registros.txt";
     private static final String RUTA_MENSAJES = RUTA_BASE + "Mensajitos.txt";
     private static final String RUTA_TEMP = RUTA_BASE + "temp_registros.txt";
+    private static final String RUTA_BLOQUEOS = RUTA_BASE + "Bloqueos.txt";
 
     public static void main(String[] args) throws IOException {
         try (ServerSocket servidor = new ServerSocket(8080)) {
@@ -23,10 +24,10 @@ public class Main {
                 escritor.println("Dame la contraseña:");
                 String contraseña = lectorSocket.readLine();
 
-                if (!usuarioExiste(nombre)) {
+                if (!usuarioExiste(nombre,RUTA_REGISTROS)) {
                     escritor.println("el usuario no existe, Deseas registrartlo? (si/no)");
                     if ((lectorSocket.readLine()).equalsIgnoreCase("si")) {
-                        registrarUsuario(nombre, contraseña);
+                        registrarUsuario(nombre, contraseña,RUTA_REGISTROS);
                         escritor.println("Usuario registrado con éxito.");
                     }
                 }
@@ -38,17 +39,19 @@ public class Main {
 
                         switch (opcion) {
                             case "1":
-                                leerMensajes(nombre, escritor, lectorSocket);
+                                leerMensajes(nombre, escritor, lectorSocket,RUTA_MENSAJES);
                                 break;
                             case "2":
-                                escritor.println("Usa @(usuario) para mandar un mensaje. "+imprimirUsuarios());
+                                escritor.println("Usa @(usuario) (mensaje) para mandar un mensaje o "
+                                        + "#(usuario) para bloquearlo. "
+                                        + imprimirUsuarios());
                                 break;
                             case "3":
                                 escritor.println("Seguro que quieres borrar tu cuenta? (si/no)");
                                 if (lectorSocket.readLine().equalsIgnoreCase("si")) {
                                     if (estaEliminado(nombre, contraseña)) {
                                         escritor.println(" Cuenta eliminada.");
-                                        cuentaActiva = false; // salir del loop
+                                        cuentaActiva = false;
                                     } else {
                                         escritor.println(" Error al eliminar la cuenta.");
                                     }
@@ -62,12 +65,25 @@ public class Main {
                                 if (opcion.startsWith("@")) {
                                     mandarMensaje(opcion, nombre);
                                 }
+                                if (opcion.startsWith("#")) {
+                                    bloquearUsuario(nombre,opcion);
+                                }
                         }
                     }
                 }
             } catch (IOException e) {
                 System.out.println("Error en el servidor: " + e.getMessage());
             }
+        }
+    }
+    
+    private static boolean estaBloqueado(){
+        
+        return false;
+    }
+    private static void bloquearUsuario(String nombre,String usuarioB) {
+        if (usuarioExiste(obtenerUsuario(usuarioB),RUTA_REGISTROS)) {
+            registrarUsuario(nombre, obtenerUsuario(usuarioB), RUTA_BLOQUEOS);
         }
     }
 
@@ -87,17 +103,18 @@ public class Main {
 
     private static String obtenerUsuario(String mensaje) {
         String nombre = "";
-        if (mensaje.contains(" ")) {
-            nombre = mensaje.substring(1, mensaje.indexOf(" "));
-        }
+        String[] partes = mensaje.split(" ");
+        nombre = partes[0].substring(1);
         return nombre;
     }
 
     private static void mandarMensaje(String mensaje, String origen) {
         String destino = obtenerUsuario(mensaje);
-        if (usuarioExiste(destino)) {
-            guardarMensaje(destino, origen, arreglarMensaje(mensaje));
+        if (usuarioExiste(destino,RUTA_REGISTROS)) {
+            guardarMensaje(destino, origen, arreglarMensaje(mensaje),RUTA_MENSAJES);
+            return;
         }
+        
     }
 
     private static String arreglarMensaje(String mensaje) {
@@ -105,8 +122,8 @@ public class Main {
         return mensajeArreglado;
     }
 
-    private static boolean usuarioExiste(String nombre) {
-        try (BufferedReader br = new BufferedReader(new FileReader(RUTA_REGISTROS))) {
+    private static boolean usuarioExiste(String nombre,String rutaFinal) {
+        try (BufferedReader br = new BufferedReader(new FileReader(rutaFinal))) {
             String linea;
             while ((linea = br.readLine()) != null) {
                 String[] partes = linea.split(":", 2);
@@ -119,8 +136,8 @@ public class Main {
         return false;
     }
 
-    private static void registrarUsuario(String nombre, String contraseña) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_REGISTROS, true))) {
+    private static void registrarUsuario(String nombre, String contraseña,String rutaFinal) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(rutaFinal, true))) {
             bw.write(nombre + ":" + contraseña);
             bw.newLine();
         } catch (IOException e) {
@@ -163,8 +180,8 @@ public class Main {
         return eliminado && original.delete() && temp.renameTo(original);
     }
 
-    private static void leerMensajes(String nombre, PrintWriter escritor, BufferedReader lectorSocket) throws IOException {
-        try (BufferedReader br = new BufferedReader(new FileReader(RUTA_MENSAJES))) {
+    private static void leerMensajes(String nombre, PrintWriter escritor, BufferedReader lectorSocket,String rutaFinal) throws IOException {
+        try (BufferedReader br = new BufferedReader(new FileReader(rutaFinal))) {
             String linea;
             boolean hayMensajes = false;
             while ((linea = br.readLine()) != null) {
@@ -184,8 +201,8 @@ public class Main {
         }
     }
 
-    private static void guardarMensaje(String destino, String origen, String mensaje) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_MENSAJES, true))) {
+    private static void guardarMensaje(String destino, String origen, String mensaje,String rutaFinal) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(rutaFinal, true))) {
             bw.write(destino + ":" + origen + " => " + mensaje);
             bw.newLine();
         } catch (IOException e) {
