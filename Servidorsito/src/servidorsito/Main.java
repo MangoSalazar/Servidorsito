@@ -32,9 +32,9 @@ public class Main {
                 }
 
                 if (validarUsuario(nombre, contraseña)) {
-                    boolean activo = true;
-                    while (activo) {
-                        escritor.println("¿Qué deseas hacer? (1 = leer mensajes, 2 = dejar mensajes, 3 = borrar cuenta, 4 = salir)");
+                    boolean cuentaActiva = true;
+                    while (cuentaActiva) {
+                        escritor.println("¿Qué deseas hacer? (1 = leer mensajes, 2 = ver usuarios, 3 = borrar cuenta, 4 = salir)");
                         String opcion = lectorSocket.readLine();
 
                         switch (opcion) {
@@ -42,23 +42,14 @@ public class Main {
                                 leerMensajes(nombre, escritor, lectorSocket);
                                 break;
                             case "2":
-                                escritor.println("A quién va dirigido el mensaje?");
-                                String destino = lectorSocket.readLine();
-                                if (!usuarioExiste(destino)) {
-                                    escritor.println("️ El usuario no está registrado.");
-                                    break;
-                                }
-                                escritor.println("Escribe tu mensaje:");
-                                String mensaje = lectorSocket.readLine();
-                                guardarMensaje(destino, nombre, mensaje);
-                                escritor.println(" Mensaje guardado con éxito.");
+                                escritor.println("Usa @(usuario) para mandar un mensaje. "+imprimirUsuarios());
                                 break;
                             case "3":
                                 escritor.println("Seguro que quieres borrar tu cuenta? (si/no)");
                                 if (lectorSocket.readLine().equalsIgnoreCase("si")) {
-                                    if (borrarUsuario(nombre, contraseña)) {
+                                    if (estaEliminado(nombre, contraseña)) {
                                         escritor.println(" Cuenta eliminada.");
-                                        activo = false; // salir del loop
+                                        cuentaActiva = false; // salir del loop
                                     } else {
                                         escritor.println(" Error al eliminar la cuenta.");
                                     }
@@ -66,12 +57,11 @@ public class Main {
                                 break;
                             case "4":
                                 escritor.println(" Cerrando sesión...");
-                                activo = false;
+                                cuentaActiva = false;
                                 break;
                             default:
-                                //Añadir el mensaje dirigido con un solo estado
                                 if (opcion.startsWith("@")) {
-                                    mandarMensaje(opcion , nombre);
+                                    mandarMensaje(opcion, nombre);
                                 }
                         }
                     }
@@ -82,6 +72,20 @@ public class Main {
         }
     }
 
+    private static String imprimirUsuarios() {
+        String linea;
+        String nombres = "";
+        try (BufferedReader br = new BufferedReader(new FileReader(RUTA_REGISTROS))) {
+            while ((linea = br.readLine()) != null) {
+                String[] partes = linea.split(":", 2);
+                nombres = nombres + partes[0] + ", ";
+            }
+            return nombres;
+        } catch (IOException ignored) {
+        }
+        return nombres;
+    }
+
     private static String obtenerUsuario(String mensaje) {
         String nombre = "";
         if (mensaje.contains(" ")) {
@@ -89,19 +93,19 @@ public class Main {
         }
         return nombre;
     }
-    
-    private static void mandarMensaje(String mensaje, String origen){
-        String destino= obtenerUsuario(mensaje);
+
+    private static void mandarMensaje(String mensaje, String origen) {
+        String destino = obtenerUsuario(mensaje);
         if (usuarioExiste(destino)) {
             guardarMensaje(destino, origen, arreglarMensaje(mensaje));
         }
     }
-    
-    private static String arreglarMensaje(String mensaje){
-        String mensajeArreglado = mensaje.substring(mensaje.indexOf(" ")+1, mensaje.length());
+
+    private static String arreglarMensaje(String mensaje) {
+        String mensajeArreglado = mensaje.substring(mensaje.indexOf(" ") + 1, mensaje.length());
         return mensajeArreglado;
     }
-    
+
     private static boolean usuarioExiste(String nombre) {
         try (BufferedReader br = new BufferedReader(new FileReader(RUTA_REGISTROS))) {
             String linea;
@@ -139,7 +143,7 @@ public class Main {
         return false;
     }
 
-    private static boolean borrarUsuario(String nombre, String contraseña) {
+    private static boolean estaEliminado(String nombre, String contraseña) {
         File original = new File(RUTA_REGISTROS);
         File temp = new File(RUTA_TEMP);
         boolean eliminado = false;
