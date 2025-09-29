@@ -77,13 +77,16 @@ public class Main {
         }
     }
     
-    private static boolean estaBloqueado(){
-        
+    private static boolean estaBloqueado(String usuario){
+        if (usuarioExiste(usuario, RUTA_BLOQUEOS)) {
+            return true;
+        }
         return false;
     }
+    
     private static void bloquearUsuario(String nombre,String usuarioB) {
-        if (usuarioExiste(obtenerUsuario(usuarioB),RUTA_REGISTROS)) {
-            registrarUsuario(nombre, obtenerUsuario(usuarioB), RUTA_BLOQUEOS);
+        if (usuarioExiste(obtenerUsuario(usuarioB),RUTA_REGISTROS) && !estaBloqueado(usuarioB)) {
+            registrarUsuario(obtenerUsuario(usuarioB), nombre, RUTA_BLOQUEOS);
         }
     }
 
@@ -122,7 +125,7 @@ public class Main {
         return mensajeArreglado;
     }
 
-    private static boolean usuarioExiste(String nombre,String rutaFinal) {
+    private static boolean usuarioExiste(String nombre, String rutaFinal) {
         try (BufferedReader br = new BufferedReader(new FileReader(rutaFinal))) {
             String linea;
             while ((linea = br.readLine()) != null) {
