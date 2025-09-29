@@ -6,7 +6,7 @@ import java.net.Socket;
 
 public class Main {
 
-    private static final String RUTA_BASE = "C:\\Users\\M1-MQ1-D\\Documents\\NetBeansProjects\\Servidorsito\\Servidorsito\\src\\servidorsito\\";
+    private static final String RUTA_BASE = "C:\\Users\\mango\\Documents\\Servidorsito\\Servidorsito\\src\\servidorsito\\";
     private static final String RUTA_REGISTROS = RUTA_BASE + "Registros.txt";
     private static final String RUTA_MENSAJES = RUTA_BASE + "Mensajitos.txt";
     private static final String RUTA_TEMP = RUTA_BASE + "temp_registros.txt";
@@ -93,8 +93,13 @@ public class Main {
     private static void mandarMensaje(String mensaje, String origen){
         String destino= obtenerUsuario(mensaje);
         if (usuarioExiste(destino)) {
-            guardarMensaje(destino, origen, mensajeArreglado);
+            guardarMensaje(destino, origen, arreglarMensaje(mensaje));
         }
+    }
+    
+    private static String arreglarMensaje(String mensaje){
+        String mensajeArreglado = mensaje.substring(mensaje.indexOf(" ")+1, mensaje.length());
+        return mensajeArreglado;
     }
     
     private static boolean usuarioExiste(String nombre) {
