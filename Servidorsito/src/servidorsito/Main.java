@@ -24,7 +24,7 @@ public class Main {
                 String contraseña = lectorSocket.readLine();
 
                 if (!usuarioExiste(nombre)) {
-                    escritor.println("el usuario no existe, Deseas registrartlo?");
+                    escritor.println("el usuario no existe, Deseas registrartlo? (si/no)");
                     if ((lectorSocket.readLine()).equalsIgnoreCase("si")) {
                         registrarUsuario(nombre, contraseña);
                         escritor.println("✅ Usuario registrado con éxito.");
@@ -69,7 +69,10 @@ public class Main {
                                 activo = false;
                                 break;
                             default:
-                                escritor.println(" Opción no válida.");
+                                //Añadir el mensaje dirigido con un solo estado
+                                if (opcion.startsWith("@")) {
+                                    mandarMensaje(opcion , nombre);
+                                }
                         }
                     }
                 }
@@ -78,7 +81,20 @@ public class Main {
             }
         }
     }
+
+    private static String obtenerUsuario(String mensaje) {
+        String nombre = "";
+        if (mensaje.contains(" ")) {
+            nombre = mensaje.substring(1, mensaje.indexOf(" "));
+        }
+        return nombre;
+    }
     
+    private static void mandarMensaje(String mensaje, String origen){
+        if (usuarioExiste(obtenerUsuario(mensaje))) {
+            
+        } 
+    }
 
     private static boolean usuarioExiste(String nombre) {
         try (BufferedReader br = new BufferedReader(new FileReader(RUTA_REGISTROS))) {
@@ -121,9 +137,7 @@ public class Main {
         File original = new File(RUTA_REGISTROS);
         File temp = new File(RUTA_TEMP);
         boolean eliminado = false;
-
         try (BufferedReader br = new BufferedReader(new FileReader(original)); BufferedWriter bw = new BufferedWriter(new FileWriter(temp))) {
-
             String linea;
             while ((linea = br.readLine()) != null) {
                 String[] partes = linea.split(":", 2);
@@ -137,7 +151,6 @@ public class Main {
         } catch (IOException e) {
             return false;
         }
-
         return eliminado && original.delete() && temp.renameTo(original);
     }
 
