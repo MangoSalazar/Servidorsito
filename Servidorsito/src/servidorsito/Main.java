@@ -30,7 +30,6 @@ public class Main {
                         escritor.println("✅ Usuario registrado con éxito.");
                     }
                 }
-
                 if (validarUsuario(nombre, contraseña)) {
                     boolean cuentaActiva = true;
                     while (cuentaActiva) {
