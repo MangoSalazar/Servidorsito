@@ -91,11 +91,12 @@ public class Main {
     }
     
     private static void mandarMensaje(String mensaje, String origen){
-        if (usuarioExiste(obtenerUsuario(mensaje))) {
-            
-        } 
+        String destino= obtenerUsuario(mensaje);
+        if (usuarioExiste(destino)) {
+            guardarMensaje(destino, origen, mensajeArreglado);
+        }
     }
-
+    
     private static boolean usuarioExiste(String nombre) {
         try (BufferedReader br = new BufferedReader(new FileReader(RUTA_REGISTROS))) {
             String linea;
