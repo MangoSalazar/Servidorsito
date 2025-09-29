@@ -27,7 +27,7 @@ public class Main {
                     escritor.println("el usuario no existe, Deseas registrartlo? (si/no)");
                     if ((lectorSocket.readLine()).equalsIgnoreCase("si")) {
                         registrarUsuario(nombre, contraseña);
-                        escritor.println("✅ Usuario registrado con éxito.");
+                        escritor.println("Usuario registrado con éxito.");
                     }
                 }
                 if (validarUsuario(nombre, contraseña)) {
